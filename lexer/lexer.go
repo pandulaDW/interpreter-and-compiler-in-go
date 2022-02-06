@@ -15,7 +15,12 @@ func (l *Lexer) NextToken() token.Token {
 
 	switch l.ch {
 	case '=':
-		tok = newToken(token.ASSIGN, '=')
+		if l.peekChar() == '=' {
+			tok = token.Token{Type: token.EQ, Literal: "=="}
+			l.readChar()
+		} else {
+			tok = newToken(token.ASSIGN, '=')
+		}
 	case ';':
 		tok = newToken(token.SEMICOLON, ';')
 	case '(':
@@ -31,17 +36,22 @@ func (l *Lexer) NextToken() token.Token {
 	case '}':
 		tok = newToken(token.RBRACE, '}')
 	case '!':
-		tok = newToken()
+		if l.peekChar() == '=' {
+			tok = token.Token{Type: token.NEQ, Literal: "!="}
+			l.readChar()
+		} else {
+			tok = newToken(token.BANG, '!')
+		}
 	case '-':
-		tok = newToken()
+		tok = newToken(token.MINUS, '-')
 	case '/':
-		tok = newToken()
+		tok = newToken(token.SLASH, '/')
 	case '*':
-		tok = newToken()
+		tok = newToken(token.ASTERISK, '*')
 	case '<':
-		tok = newToken()
+		tok = newToken(token.LT, '<')
 	case '>':
-		tok = newToken()
+		tok = newToken(token.GT, '>')
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -119,4 +129,13 @@ func (l *Lexer) readNumber() string {
 // isDigit return true if the character is a digit, false otherwise
 func isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
+}
+
+// peekChar returns the next character
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
+	} else {
+		return l.input[l.readPosition]
+	}
 }

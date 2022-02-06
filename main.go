@@ -1,10 +1,21 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/pandulaDW/interpreter-and-compiler-in-go/repl"
+	"os"
+	"os/user"
+)
 
 func main() {
-	input := `some stuff`
-	fmt.Println(input[2:2] == "")
+	u, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Hello %s! This is the Monkey programming language!\n", u.Username)
+	fmt.Println("Feel free to type in commands")
+	repl.Start(os.Stdin, os.Stdout)
 }
 
 // TODO

@@ -1,5 +1,7 @@
 package token
 
+import "fmt"
+
 type TokenType string
 
 type Token struct {
@@ -62,4 +64,9 @@ func LookUpIdent(ident string) TokenType {
 		return tok
 	}
 	return IDENT
+}
+
+// String implements the stringer interface for Token
+func (tok Token) String() string {
+	return fmt.Sprintf("{ TokenType: %s, Literal: %s }", tok.Type, tok.Literal)
 }

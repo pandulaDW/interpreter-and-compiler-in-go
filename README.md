@@ -3,6 +3,8 @@ An interpreter and a compiler written in Go by following the books from
 
 The interpreter is built from scratch which includes a lexer (tokenizer), a parser and a tree walking intepreter.
 
+--- 
+
 ## Features
 - The language supports int, string and boolean data types.
 - Supports common operators like +, -, ==, !=, <, > etc.

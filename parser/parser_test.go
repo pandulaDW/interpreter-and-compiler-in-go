@@ -19,6 +19,8 @@ func TestLetStatements(t *testing.T) {
 	program := p.ParseProgram()
 	require.NotNil(t, program)
 
+	checkParseErrors(t, p)
+
 	require.Equal(t, 3, len(program.Statements))
 
 	tests := []struct {
@@ -44,4 +46,19 @@ func testLetStatement(t *testing.T, s ast.Statement, name string) {
 
 	require.Equal(t, name, letStmt.Name.Value)
 	require.Equal(t, name, letStmt.Name.TokenLiteral())
+}
+
+func checkParseErrors(t *testing.T, p *Parser) {
+	t.Helper()
+
+	errors := p.Errors()
+	if len(errors) == 0 {
+		return
+	}
+
+	t.Errorf("parser has %d error(s)", len(errors))
+	for _, msg := range errors {
+		t.Errorf("parser error: %q", msg)
+	}
+	t.FailNow()
 }

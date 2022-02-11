@@ -18,9 +18,7 @@ func TestLetStatements(t *testing.T) {
 
 	program := p.ParseProgram()
 	require.NotNil(t, program)
-
 	checkParseErrors(t, p)
-
 	require.Equal(t, 3, len(program.Statements))
 
 	tests := []struct {
@@ -34,6 +32,27 @@ func TestLetStatements(t *testing.T) {
 	for i, tt := range tests {
 		stmt := program.Statements[i]
 		testLetStatement(t, stmt, tt.expectedIdentifier)
+	}
+}
+
+func TestReturnStatement(t *testing.T) {
+	input := `
+   return 5;
+   return 10;
+   return 993322;
+`
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	require.NotNil(t, program)
+	checkParseErrors(t, p)
+	require.Equal(t, 3, len(program.Statements))
+
+	for _, statement := range program.Statements {
+		returnStatement, ok := statement.(*ast.ReturnStatement)
+		require.True(t, ok)
+		require.Equal(t, "return", returnStatement.TokenLiteral())
 	}
 }
 

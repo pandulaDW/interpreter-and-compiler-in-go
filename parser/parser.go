@@ -1,10 +1,25 @@
 package parser
 
 import (
-	"fmt"
 	"github.com/pandulaDW/interpreter-and-compiler-in-go/ast"
 	"github.com/pandulaDW/interpreter-and-compiler-in-go/lexer"
 	"github.com/pandulaDW/interpreter-and-compiler-in-go/token"
+)
+
+const (
+	_ int = iota
+	LOWEST
+	EQUALS      // ==
+	LESSGREATER // < OR >
+	SUM         // +
+	PRODUCT     // *
+	PREFIX      // -X OR !X
+	CALL        // myFunction(x)
+)
+
+type (
+	prefixParseFn func() ast.Expression
+	infixParseFn  func(exp ast.Expression) ast.Expression
 )
 
 type Parser struct {
@@ -12,6 +27,9 @@ type Parser struct {
 	curToken  token.Token
 	peekToken token.Token
 	errors    []string
+
+	prefixParseFns map[token.TokenType]prefixParseFn
+	infixParseFns  map[token.TokenType]infixParseFn
 }
 
 // New creates a new Parser
@@ -22,13 +40,11 @@ func New(l *lexer.Lexer) *Parser {
 	p.nextToken()
 	p.nextToken()
 
-	return p
-}
+	// register parser function
+	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
+	p.registerPrefix(token.IDENT, p.parseIdentifier)
 
-// nextToken sets the current token and advances the tokenizer
-func (p *Parser) nextToken() {
-	p.curToken = p.peekToken
-	p.peekToken = p.l.NextToken()
+	return p
 }
 
 // ParseProgram builds the ast and returns the root
@@ -54,8 +70,9 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseLetStatement()
 	case token.RETURN:
 		return p.parseReturnStatement()
+	default:
+		return p.parseExpressionStatement()
 	}
-	return nil
 }
 
 // parseLetStatement parses let statements
@@ -96,35 +113,29 @@ func (p *Parser) parseReturnStatement() ast.Statement {
 	return stmt
 }
 
-// curTokenIs returns true if t is the current token, false otherwise
-func (p *Parser) curTokenIs(t token.TokenType) bool {
-	return p.curToken.Type == t
-}
+// parseExpressionStatement returns an ast statement for the given expression
+func (p *Parser) parseExpressionStatement() ast.Statement {
+	stmt := &ast.ExpressionStatement{Token: p.curToken}
+	stmt.Expression = p.parseExpression(LOWEST)
 
-// peekTokenIs returns true if t is the next token, false otherwise
-func (p *Parser) peekTokenIs(t token.TokenType) bool {
-	return p.peekToken.Type == t
-}
-
-// expectPeek returns true if t is the expected token and advances the token.
-// Returns false otherwise without advancing.
-func (p *Parser) expectPeek(t token.TokenType) bool {
-	if p.peekTokenIs(t) {
+	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
-		return true
 	}
-	p.peekError(t)
-	return false
+
+	return stmt
 }
 
-// Errors returns the errors encountered during parsing
-func (p *Parser) Errors() []string {
-	return p.errors
+// parseExpression is the main function for parsing expressions
+func (p *Parser) parseExpression(precedence int) ast.Expression {
+	prefix := p.prefixParseFns[p.curToken.Type]
+	if prefix == nil {
+		return nil
+	}
+	leftExp := prefix()
+	return leftExp
 }
 
-// peekError sets an error if peek token is not the expected token
-func (p *Parser) peekError(t token.TokenType) {
-	msg := fmt.Sprintf("expected next token to be %s, got %s instead", t,
-		p.peekToken.Type)
-	p.errors = append(p.errors, msg)
+// parseIdentifier parses an identifier expression
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 }

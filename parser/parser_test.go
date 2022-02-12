@@ -81,3 +81,20 @@ func checkParseErrors(t *testing.T, p *Parser) {
 	}
 	t.FailNow()
 }
+
+func TestIdentifierExpression(t *testing.T) {
+	input := "foobar;"
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+	require.Equal(t, 1, len(program.Statements))
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	require.True(t, ok)
+
+	ident, ok := stmt.Expression.(*ast.Identifier)
+	require.True(t, ok)
+	require.Equal(t, "foobar", ident.Value)
+	require.Equal(t, "foobar", ident.TokenLiteral())
+}

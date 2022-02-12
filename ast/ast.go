@@ -61,7 +61,7 @@ func (i *Identifier) String() string {
 // IntegerLiteral ------------------------------
 type IntegerLiteral struct {
 	Token token.Token // token.INT
-	Value int
+	Value int64
 }
 
 func (in *IntegerLiteral) expressionNode() {}
@@ -70,6 +70,21 @@ func (in *IntegerLiteral) TokenLiteral() string {
 }
 func (in *IntegerLiteral) String() string {
 	return in.TokenLiteral()
+}
+
+// PrefixExpression ------------------------------
+type PrefixExpression struct {
+	Token    token.Token // token.INT
+	Operator string
+	Right    Expression
+}
+
+func (pe *PrefixExpression) expressionNode() {}
+func (pe *PrefixExpression) TokenLiteral() string {
+	return pe.Token.Literal
+}
+func (pe *PrefixExpression) String() string {
+	return fmt.Sprintf("(%s%s)", pe.Operator, pe.Right.String())
 }
 
 // LetStatement ---------------------------------

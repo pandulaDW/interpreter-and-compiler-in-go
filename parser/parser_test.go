@@ -109,3 +109,30 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	require.Equal(t, 25, ident.Value)
 	require.Equal(t, "25", ident.TokenLiteral())
 }
+
+func TestParsingPrefixExpressions(t *testing.T) {
+	prefixTests := []struct {
+		input        string
+		operator     string
+		integerValue int64
+	}{
+		{"!5", "!", 5},
+		{"-25", "-", 25},
+	}
+
+	for _, tt := range prefixTests {
+		program := initiateTest(t, tt.input)
+		require.Equal(t, 1, len(program.Statements))
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		require.True(t, ok)
+
+		exp, ok := stmt.Expression.(*ast.PrefixExpression)
+		require.True(t, ok)
+		require.Equal(t, tt.operator, exp.Operator)
+
+		intExpr, ok := exp.Right.(*ast.IntegerLiteral)
+		require.True(t, ok)
+		require.Equal(t, tt.integerValue, intExpr.Value)
+	}
+}

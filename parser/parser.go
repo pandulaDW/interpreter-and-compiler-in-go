@@ -1,9 +1,11 @@
 package parser
 
 import (
+	"fmt"
 	"github.com/pandulaDW/interpreter-and-compiler-in-go/ast"
 	"github.com/pandulaDW/interpreter-and-compiler-in-go/lexer"
 	"github.com/pandulaDW/interpreter-and-compiler-in-go/token"
+	"strconv"
 )
 
 const (
@@ -43,6 +45,7 @@ func New(l *lexer.Lexer) *Parser {
 	// register parser function
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 
 	return p
 }
@@ -138,4 +141,15 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 // parseIdentifier parses an identifier expression
 func (p *Parser) parseIdentifier() ast.Expression {
 	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+}
+
+// parseIntegerLiteral parses an identifier expression
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	intValue, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
+	if err != nil {
+		msg := fmt.Sprintf("could not parse %q as integer", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+	return &ast.IntegerLiteral{Token: p.curToken, Value: int(intValue)}
 }

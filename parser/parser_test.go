@@ -7,18 +7,23 @@ import (
 	"testing"
 )
 
+func initiateTest(t *testing.T, input string) *ast.Program {
+	t.Helper()
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	return program
+}
+
 func TestLetStatements(t *testing.T) {
 	input := `
 	let x = 5;
 	let y = 10;
 	let foobar = 838383;
 `
-	l := lexer.New(input)
-	p := New(l)
-
-	program := p.ParseProgram()
-	require.NotNil(t, program)
-	checkParseErrors(t, p)
+	program := initiateTest(t, input)
 	require.Equal(t, 3, len(program.Statements))
 
 	tests := []struct {
@@ -41,12 +46,7 @@ func TestReturnStatement(t *testing.T) {
    return 10;
    return 993322;
 `
-	l := lexer.New(input)
-	p := New(l)
-
-	program := p.ParseProgram()
-	require.NotNil(t, program)
-	checkParseErrors(t, p)
+	program := initiateTest(t, input)
 	require.Equal(t, 3, len(program.Statements))
 
 	for _, statement := range program.Statements {
@@ -84,10 +84,7 @@ func checkParseErrors(t *testing.T, p *Parser) {
 
 func TestIdentifierExpression(t *testing.T) {
 	input := "foobar;"
-	l := lexer.New(input)
-	p := New(l)
-	program := p.ParseProgram()
-	checkParseErrors(t, p)
+	program := initiateTest(t, input)
 	require.Equal(t, 1, len(program.Statements))
 
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
@@ -97,4 +94,18 @@ func TestIdentifierExpression(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, "foobar", ident.Value)
 	require.Equal(t, "foobar", ident.TokenLiteral())
+}
+
+func TestIntegerLiteralExpression(t *testing.T) {
+	input := "25;"
+	program := initiateTest(t, input)
+	require.Equal(t, 1, len(program.Statements))
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	require.True(t, ok)
+
+	ident, ok := stmt.Expression.(*ast.IntegerLiteral)
+	require.True(t, ok)
+	require.Equal(t, 25, ident.Value)
+	require.Equal(t, "25", ident.TokenLiteral())
 }

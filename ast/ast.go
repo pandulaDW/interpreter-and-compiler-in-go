@@ -44,6 +44,7 @@ func (p *Program) String() string {
 	return out.String()
 }
 
+// Identifier ---------------------------------
 type Identifier struct {
 	Token token.Token // token.IDENT
 	Value string
@@ -57,6 +58,21 @@ func (i *Identifier) String() string {
 	return i.Value
 }
 
+// IntegerLiteral ------------------------------
+type IntegerLiteral struct {
+	Token token.Token // token.INT
+	Value int
+}
+
+func (in *IntegerLiteral) expressionNode() {}
+func (in *IntegerLiteral) TokenLiteral() string {
+	return in.Token.Literal
+}
+func (in *IntegerLiteral) String() string {
+	return in.TokenLiteral()
+}
+
+// LetStatement ---------------------------------
 type LetStatement struct {
 	Token token.Token // token.LET
 	Name  *Identifier
@@ -81,6 +97,7 @@ func (ls *LetStatement) String() string {
 	return out.String()
 }
 
+// ReturnStatement ---------------------------------
 type ReturnStatement struct {
 	Token       token.Token // token.RETURN
 	ReturnValue Expression
@@ -101,6 +118,7 @@ func (rs *ReturnStatement) String() string {
 	return out.String()
 }
 
+// ExpressionStatement -------------------------------
 type ExpressionStatement struct {
 	Token      token.Token
 	Expression Expression
